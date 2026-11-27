@@ -1,1 +1,0 @@
-# Church-Slavonic-Synodal-Translator
