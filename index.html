@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#17151d">
+<title>Church Slavonic Synodal Translator</title>
+<style>
+:root{--bg:#111018;--panel:#1d1a26;--panel2:#252130;--gold:#d7b878;--gold2:#f0d9a5;--ink:#f4efe5;--muted:#aaa3b4;--line:#40394b;--green:#9bc5a6}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#393044 0%,#17141e 48%,#100f16 100%);color:var(--ink);font-family:Georgia,"Times New Roman",serif;min-height:100vh}
+header{padding:34px 20px 24px;text-align:center;border-bottom:1px solid #51445a;background:linear-gradient(180deg,#211c2b99,transparent)}
+.cross{color:var(--gold);font-size:25px;letter-spacing:9px;margin-bottom:10px}
+h1{font-size:clamp(26px,5vw,42px);font-weight:normal;letter-spacing:1px;margin:0;color:var(--gold2)}
+.subtitle{font-family:Arial,sans-serif;color:var(--muted);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:12px}
+main{width:min(1050px,calc(100% - 32px));margin:30px auto 60px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.langs{display:flex;gap:8px;flex-wrap:wrap}
+button,select{font:14px Arial,sans-serif;border:1px solid var(--line);border-radius:9px;padding:10px 14px;background:var(--panel2);color:var(--ink);cursor:pointer}
+button:hover,select:hover{border-color:var(--gold);color:var(--gold2)}
+.lang.active{background:#493b32;border-color:var(--gold);color:var(--gold2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{background:linear-gradient(145deg,#211e2a,#191722);border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 14px 38px #0003}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 17px;border-bottom:1px solid var(--line);font:12px Arial,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)}
+.panel-head select{width:auto;max-width:190px;padding:8px 10px;font-size:12px;letter-spacing:0;text-transform:none;flex-shrink:0}
+.panel-head .target-title{min-width:0;flex:1;overflow-wrap:anywhere}
+textarea{width:100%;min-height:280px;resize:vertical;background:transparent;border:0;outline:0;padding:20px;color:var(--ink);font:19px/1.65 Georgia,"Times New Roman",serif}
+textarea::placeholder{color:#827b8b}
+.output{min-height:280px;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere;font:21px/1.7 Georgia,"Times New Roman",serif;color:#f3e6c8}
+.empty{color:#827b8b}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}
+.primary{background:linear-gradient(135deg,#b99a60,#80643d);color:#17131a;border:0;font-weight:bold}
+.primary:hover{color:#100e14;border:0;filter:brightness(1.08)}
+.stats{display:flex;gap:18px;flex-wrap:wrap;padding:13px 17px;border-top:1px solid var(--line);font:12px Arial,sans-serif;color:var(--muted)}
+.stats strong{color:var(--gold2);font-weight:normal}
+.note{color:var(--muted);font:13px/1.6 Arial,sans-serif;margin:16px 2px 0}
+.dictionary{margin-top:26px;background:#191722;border:1px solid var(--line);border-radius:14px;padding:18px}
+.dictionary h2{font-size:19px;font-weight:normal;color:var(--gold2);margin:0 0 12px}
+.dictionary p{font:13px/1.6 Arial,sans-serif;color:var(--muted);margin:0}
+footer{text-align:center;color:#746d7d;font:11px Arial,sans-serif;letter-spacing:1px;padding:0 15px 28px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.panel textarea,.output{min-height:190px}header{padding-top:26px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="cross">☦</div>
+  <h1>Church Slavonic Synodal Translator</h1>
+  <div class="subtitle">Церковнославянский · Церковнослов'янська · Царкоўнаславянская</div>
+</header>
+<main>
+  <div class="toolbar">
+    <div class="langs" aria-label="Мова інтерфейсу">
+      <button class="lang active" data-lang="uk">Українська</button>
+      <button class="lang" data-lang="ru">Русский</button>
+      <button class="lang" data-lang="be">Беларуськая</button>
+    </div>
+    </div>
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head"><span id="sourceLabel">Ваш текст</span><span>01</span></div>
+      <textarea id="source" placeholder="Введіть текст"></textarea>
+      <div class="stats"><span id="inputCount">Символів: <strong>0</strong></span></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><span class="target-title" id="targetLabel">Церковнослов’янський синодальний текст</span><select id="synodalLanguage" aria-label="Вибір Синодального Тексту"><option value="uk">Українська</option><option value="ru">Російська</option><option value="be">Білоруська</option></select><span>02</span></div>
+      <div id="result" class="output empty">Тут з’явиться переклад…</div>
+      <div class="stats"><span id="wordCount">Замінено слів і фраз: <strong>0</strong></span><span id="unknownCount">Без відповідника: <strong>0</strong></span></div>
+    </section>
+  </div>
+  <div class="actions">
+    <button class="primary" id="translate">Перекласти</button>
+    <button id="copy">Копіювати переклад</button>
+    <button id="clear">Очистити</button>
+  </div>
+  <div class="dictionary">
+    <h2>Синодальний словник</h2>
+    </div>
+</main>
+<footer>CHURCH SLAVONIC SYNODAL TRANSLATOR · ☦</footer>
+<script>
+const dictionaries = {
+ uk: [
+ ["істина мова","истинній язїк"],["дивна поява","дивное явленіе"],["дотримуватися","соблюда́ти"],["піднесення","Воздви́женїе"],["зберігалось","Хранилось"],["народження","Нарожденія"],["християнство","христїа́нство"],["благополуччя","благополучіє"],["милосердя","милосердіє"],["пресвята","Пресвятія"],["святий","Святій"],["святого","святога"],["історія","Істо‌рїя"],["закони","устави"],["мир","мірь"],["християни","Христіане"],["порятунок","Спасеніи"],["учень","ученикъ"],["вороги","Лукаві"],["основання","Основаніи"],["стародавня","древнія"],["служіння","служе́нїю"],["заступився","заступле́нїя"],["життя","житїе́"],["рана","поврежде́нїя"],["єдиний","є҆ди́нъ"],["померлий","у́мершїй"],["вигання","заточе́нїе"],["створив","сотвори́в"],["єванглії","евангеллі"],["братом","бра́томъ"],["батько","Отець"],["сварки","сва́рі"],["дмитро","Дмитрій"],["народ","наро́дь"],["пречиста","Пречт҃ая"],["різдво","Ріждество"],["воїн","во́їнъ"],["ти","сей"],["привіт друзі","Радуйтесь друзі"],["привіт","Радуйся"],["множина привіт","Радуйтесь"],["сьогодні","Днесь"],["вересень","Септе́мврїй"],["жовтень","Октоврій"],["листопад","Ное́мврїй"],["грудень","Деке́мврїй"],["січень","Іаннуарій"],["лютий","Февруарій"],["березень","Ма́ртъ"],["квітень","А҆при́ллїй"],["травень","Ма́їй"],["червень","Іуній"],["липень","Іулій"],["серпень","Севгустъ"],["ворогів","Лукавих"],
+ ],
+ ru: [
+ ["истинный язык","истинный язьк"],["дивное появление","дивное явленые"],["придерживаться","соблюда́ти"],["возвышение","Воздви́женые"],["сохранялось","Хранилось"],["рождение","Рожденыя"],["христианство","христыа́нство"],["благополучие","благополучыэ"],["милосердие","милосердыэ"],["пресвятая","Пресвятыя"],["святой","Святый"],["святого","святого"],["история","Исто‌рыя"],["законы","уставы"],["мир","мирь"],["христиане","Христыане"],["спасение","Спасеныи"],["ученик","ученикъ"],["враги","Лукавые"],["основание","Основаныи"],["древняя","древныя"],["служение","служе́ныю"],["заступился","заступле́ныя"],["жизнь","житые́"],["рана","поврежде́ныя"],["единый","є҆ди́нъ"],["умерший","у́мершый"],["изгнание","заточе́ные"],["создал","сотвори́в"],["еванглии","еванглыи"],["брату","бра́томъ"],["папа","Отець"],["ссоры","сва́ры"],["дмитрий","Дмитрый"],["народ","наро́дь"],["пречистая","Пречт҃ая"],["рождество","Рыждество"],["воин","во́инъ"],["ты","сей"],["привет друзья","Радуйтесь друзья"],["привет","Радуйся"],["множественное привет","Радуйтесь"],["сегодня","Днесь"],["сентябрь","Септе́мврый"],["октябрь","Октоврый"],["ноябрь","Ное́мврый"],["декабрь","Деке́мврый"],["январь","Яннуарый"],["февраль","Февруары"],["март","Ма́ртъ"],["апрель","А҆преллый"],["май","Ма́ий"],["июнь","Иуный"],["июль","Иулый"],["август","Августъ"],["врагов","Лукавых"],["врагов","Лукавых"],["землі","земли"],
+ ],
+ be: [
+ ["сапраўдная мова","сапраўдная язїк"],["дзівосная з'ява","дзівосное явленіе"],["прытрымлівацца","соблюда́ти"],["узвышэнне","Ваздви́женіе"],["захоўвалася","Хранилась"],["нараджэнне","Наражденія"],["хрысціянства","христіа́нство"],["дабрабыт","благаполучіэ"],["міласэрнасць","міласердіэ"],["найсвяцейшая","Пресвятія"],["святы","Святій"],["святога","вятога"],["гісторыя","Гісто‌рія"],["законы","Ўставы"],["свет","мірь"],["хрысціяне","Христіане"],["ратаванне","Спасеніи"],["вучань","учаникъ"],["ворагі","Лукавіе"],["заснаванне","Основаніэ"],["старажытная","древнежытная"],["служэнне","служэнію"],["заступіўся","заступле́ніэ"],["жыццё","жытїе́"],["рана","павредженія"],["адзіны","эдзiнъ"],["памерлы","у́мерлій"],["выгнанне","затаче́ніе"],["стварыў","сатварив"],["евангеллі","ев̈ангеліи́"],["братам","бра́тамъ"],["бацька","Атець"],["сваркі","сва́рі"],["дзмітрый","Дзмытрій"],["народ","наро́дь"],["прачысцая","Пречт҃ая"],["раждество","Ріждество"],["воін","ва́інъ"],["ты","сей"],["прывітанне сябры","Радуйтесь сябры"],["прывітанне","Радуйся"],["множнае прывітанне","Радуйтесь"],["сёння","Днесь"],["верасень","Септе́мврій"],["кастрычнік","Актоврій"],["лістапад","Ное́мврій"],["снежань","Даке́мврій"],["студзень","Іаннуарій"],["люты","Фавруарій"],["сакавік","Ма́ртъ"],["красавік","А҆праллій"],["май","Ма́ій"],["чэрвень","Іуній"],["ліпень","Іулій"],["жнівень","Жнігустъ"],["Ворагаў","Лукавых"],
+ ]
+};
+const source=document.getElementById('source'), result=document.getElementById('result');
+const synodalLanguage=document.getElementById('synodalLanguage');
+let ui='uk';
+const labels={
+uk:{source:'Ваш текст',target:"Церковнослов'янський синодальний текст",synodal:'Синодальний текст',placeholder:'Введіть текст',empty:'Тут з’явиться переклад…',translate:'Перекласти',copy:'Копіювати переклад',clear:'Очистити',chars:'Символів:',replaced:'Замінено слів і фраз:',unknown:'Без відповідника:',copied:'Переклад скопійовано',dictionary:'Синодальний словник',footer:'ЦЕРКОВНОСЛОВ’ЯНСЬКИЙ СИНОДАЛЬНИЙ ПЕРЕКЛАДАЧ · ☦',sourceOption:'Українська',ruOption:'Російська',beOption:'Білоруська'},
+ru:{source:'Ваш текст',target:'Церковнославянский синодальный текст',synodal:'Синодальний текст',placeholder:'Введите текст',empty:'Здесь появится перевод…',translate:'Перевести',copy:'Копировать перевод',clear:'Очистить',chars:'Символов:',replaced:'Заменено слов и фраз:',unknown:'Без соответствия:',copied:'Перевод скопирован',dictionary:'Синодальный словарь',footer:'ЦЕРКОВНОСЛАВЯНСКИЙ СИНОДАЛЬНЫЙ ПЕРЕВОДЧИК · ☦',sourceOption:'Украинский',ruOption:'Русский',beOption:'Белоруський'},
+be:{source:'Ваш тэкст',target:'Царкоўнаславянскі сінадальны тэкст',synodal:'Синодальний текст',placeholder:'Увядзіце тэкст',empty:'Тут з’явіцца пераклад…',translate:'Перакласці',copy:'Скапіяваць пераклад',clear:'Ачысціць',chars:'Сімвалаў:',replaced:'Заменена слоў і выразаў:',unknown:'Без адпаведніка:',copied:'Пераклад скапіяваны',dictionary:'Сінадальны слоўнік',footer:'ЦАРКОЎНАСЛАВЯНСКІ СІНАДАЛЬНЫ ПЕРАКЛАДЧЫК · ☦',sourceOption:'Украінская',ruOption:'Расійская',beOption:'Беларуськая'}
+};
+function escapeReg(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+function matchCase(original,replacement){
+ if(original===original.toUpperCase()) return replacement.toUpperCase();
+ if(original[0]===original[0].toUpperCase()) return replacement.charAt(0).toUpperCase()+replacement.slice(1);
+ return replacement;
+}
+// Готові фрази мають пріоритет над послівним перекладом,
+// щоб зберігати правильний порядок слів і граматику.
+const phraseTranslations = {
+  uk: {
+    uk: [
+      ["я воїн стою до кінця","я воїн стою до кінця"],
+      ["я воїн борюся до кінця","я воїн борюся до кінця"],
+      ["привіт друзі я воїн я стою до кінця","привіт друзі я воїн я стою до кінця"]
+    ],
+    ru: [
+      ["я воїн стою до кінця","я во́инъ стою до конца"],
+      ["я воїн борюся до кінця","я во́инъ борюсь до конца"],
+      ["привіт друзі я воїн я стою до кінця","привет друзья я во́инъ я стою до конца"],
+      ["привіт я воїн стою до кінця","Радуйся я во́инъ стою до конца"]
+    ],
+    be: [
+      ["я воїн стою до кінця","я ва́інъ стаю да канца"],
+      ["я воїн борюся до кінця","я воін змагаюся да канца"],
+      ["привіт друзі я воїн я стою до кінця","прывітанне сябры я воін я стаю да канца"]
+    ]
+  },
+  ru: {
+    uk: [
+      ["я воин стою до конца","я воїн стою до кінця"],
+      ["я воин борюсь до конца","я воїн борюся до кінця"],
+      ["привет друзья я воин я стою до конца","привіт друзі я воїн я стою до кінця"]
+    ],
+    ru: [
+      ["я воин стою до конца","я во́инъ стою до конца"],
+      ["я воин борюсь до конца","я во́инъ борюсь до конца"],
+      ["привет друзья я воин я стою до конца","привет друзья я во́инъ я стою до конца"]
+    ],
+    be: [
+      ["я воин стою до конца","я ва́інъ стаю да канца"],
+      ["я воин борюсь до конца","я воін змагаюся да канца"],
+      ["привет друзья я воин я стою до конца","прывітанне сябры я воін я стаю да канца"]
+    ]
+  },
+  be: {
+    uk: [
+      ["я воін стаю да канца","я воїн стою до кінця"],
+      ["я воін змагаюся да канца","я воїн борюся до кінця"],
+      ["прывітанне сябры я воін я стаю да канца","привіт друзі я воїн я стою до кінця"]
+    ],
+    ru: [
+      ["я воін стаю да канца","я воин стою до конца"],
+      ["я воін змагаюся да канца","я воин борюсь до конца"],
+      ["прывітанне сябры я воін я стаю да канца","привет друзья я воин я стою до конца"]
+    ],
+    be: [
+      ["я воін стаю да канца","я ва́інъ стаю да канца"],
+      ["я воін змагаюся да канца","я воін змагаюся да канца"],
+      ["прывітанне сябры я воін я стаю да канца","прывітанне сябры я воін я стаю да канца"]
+    ]
+  }
+};
+
+// Форми множини: мова введення -> мова синодального результату.
+const pluralTranslations = {
+  uk: {
+    uk: [["привіт друзі","Радуйтесь друзі"],["друзі","друзі"],["вороги","Лукаві"]],
+    ru: [["привіт друзі","Радуйтесь друзья"],["друзі","друзья"],["вороги","Лукавые"]],
+    be: [["привіт друзі","Радуйтесь сябры"],["друзі","сябры"],["вороги","Лукавіе"]]
+  },
+  ru: {
+    uk: [["привет друзья","Радуйтесь друзі"],["друзья","друзі"],["враги","Лукаві"]],
+    ru: [["привет друзья","Радуйтесь друзья"],["друзья","друзья"],["враги","Лукавые"]],
+    be: [["привет друзья","Радуйтесь сябры"],["друзья","сябры"],["враги","Лукавіе"]]
+  },
+  be: {
+    uk: [["прывітанне сябры","Радуйтесь друзі"],["сябры","друзі"],["ворагі","Лукаві"]],
+    ru: [["прывітанне сябры","Радуйтесь друзья"],["сябры","друзья"],["ворагі","Лукавые"]],
+    be: [["прывітанне сябры","Радуйтесь сябры"],["сябры","сябры"],["ворагі","Лукавіе"]]
+  }
+};
+
+let translationRun = 0;
+async function translate(){
+  const run = ++translationRun;
+  const text=source.value;
+  let output=text, count=0;
+  const sourceLanguageMap=dictionaries[ui]||dictionaries.uk;
+  const targetLanguage=synodalLanguage.value;
+  const targetLanguageMap=dictionaries[targetLanguage]||dictionaries.uk;
+  const pluralMap=(pluralTranslations[ui]||pluralTranslations.uk)[targetLanguage]||[];
+  const phraseMap=((phraseTranslations[ui]||phraseTranslations.uk)[targetLanguage]||[]);
+  const knownWords=new Set();
+
+  // Apply complete phrases first: this prevents word-by-word fallback from
+  // producing mixed-language or grammatically broken sentences.
+  const sortedPhrases=[...phraseMap].sort((a,b)=>b[0].length-a[0].length);
+  for(const [from,to] of sortedPhrases){
+    const re=new RegExp('(^|[^\\p{L}\\p{M}])('+escapeReg(from)+')(?=$|[^\\p{L}\\p{M}])','giu');
+    output=output.replace(re,(whole,left,matched)=>{
+      count++;
+      matched.split(/\s+/u).forEach(word=>knownWords.add(word.toLocaleLowerCase()));
+      return left+matchCase(matched,to);
+    });
+  }
+
+  // First apply the site's own Church Slavonic dictionary. Its rules always
+  // take priority over the online fallback.
+  const selectedMap=sourceLanguageMap.map((entry,index)=>{
+    const targetEntry=targetLanguageMap[index];
+    return [entry[0], targetEntry ? targetEntry[1] : entry[1]];
+  });
+  const sorted=[...pluralMap,...selectedMap].sort((a,b)=>b[0].length-a[0].length);
+  for(const [from,to] of sorted){
+    const re=new RegExp('(^|[^\\p{L}\\p{M}])('+escapeReg(from)+')(?=$|[^\\p{L}\\p{M}])','giu');
+    output=output.replace(re,(whole,left,word)=>{count++;knownWords.add(word.toLocaleLowerCase());return left+matchCase(word,to)});
+  }
+
+  // Translate only words that the local dictionary does not know.
+  // This keeps the existing Church Slavonic translations unchanged.
+  const unknownWords=[...new Set((text.match(/[\p{L}\p{M}]+/gu)||[])
+    .filter(word=>!knownWords.has(word.toLocaleLowerCase()))
+    .filter(word=>ui!==targetLanguage))];
+
+  if(unknownWords.length){
+    const langCodes={uk:'uk',ru:'ru',be:'be'};
+    const translated=new Map();
+    await Promise.all(unknownWords.map(async word=>{
+      try{
+        const url='https://translate.googleapis.com/translate_a/single?client=gtx&sl='+
+          encodeURIComponent(langCodes[ui]||'uk')+'&tl='+
+          encodeURIComponent(langCodes[targetLanguage]||'uk')+'&dt=t&q='+encodeURIComponent(word);
+        let value='';
+        try{
+          const response=await fetch(url);
+          if(response.ok){
+            const data=await response.json();
+            value=Array.isArray(data?.[0]) ? data[0].map(part=>part?.[0]||'').join('') : '';
+          }
+        }catch(error){}
+        // Backup service: use it when Google's public web endpoint is blocked.
+        if(!value){
+          try{
+            const pair=(langCodes[ui]||'uk')+'|'+(langCodes[targetLanguage]||'ru');
+            const backup='https://api.mymemory.translated.net/get?q='+encodeURIComponent(word)+'&langpair='+encodeURIComponent(pair);
+            const backupResponse=await fetch(backup);
+            if(backupResponse.ok){
+              const backupData=await backupResponse.json();
+              value=backupData?.responseData?.translatedText||'';
+              if(value && /MYMEMORY WARNING|PLEASE SELECT/i.test(value)) value='';
+            }
+          }catch(error){}
+        }
+        if(value) translated.set(word.toLocaleLowerCase(),value);
+      }catch(error){
+        // If both online services are unavailable, keep the original word.
+      }
+    }));
+    if(run!==translationRun) return;
+    for(const [word,value] of translated){
+      const re=new RegExp('(^|[^\\p{L}\\p{M}])('+escapeReg(word)+')(?=$|[^\\p{L}\\p{M}])','giu');
+      output=output.replace(re,(whole,left,matched)=>{count++;return left+matchCase(matched,value)});
+    }
+  }
+
+  if(run!==translationRun) return;
+  result.textContent=output||labels[ui].empty;
+  result.classList.toggle('empty',!output);
+  document.getElementById('inputCount').innerHTML=labels[ui].chars+' <strong>'+[...text].length+'</strong>';
+  document.getElementById('wordCount').innerHTML=labels[ui].replaced+' <strong>'+count+'</strong>';
+  document.getElementById('unknownCount').innerHTML=labels[ui].unknown+' <strong>—</strong>';
+}
+function setLang(lang){
+ ui=lang;document.documentElement.lang=lang;
+ document.querySelectorAll('.lang').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+ const l=labels[lang];document.getElementById('sourceLabel').textContent=l.source;document.getElementById('targetLabel').textContent=l.synodal;
+ source.placeholder=l.placeholder;document.getElementById('translate').textContent=l.translate;document.getElementById('copy').textContent=l.copy;document.getElementById('clear').textContent=l.clear;
+ document.querySelector('.dictionary h2').textContent=l.dictionary;
+  const connectionNote=document.getElementById('translationConnectionNote');
+  if(connectionNote) connectionNote.textContent=({
+})[lang];
+  document.querySelector('footer').textContent=l.footer;
+ const opts=synodalLanguage.options;opts[0].textContent=l.sourceOption;opts[1].textContent=l.ruOption;opts[2].textContent=l.beOption;
+ if(!source.value) result.textContent=l.empty;translate();
+}
+document.querySelectorAll('.lang').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+document.getElementById('translate').addEventListener('click',translate);
+synodalLanguage.addEventListener('change',translate);
+source.addEventListener('input',translate);
+document.getElementById('clear').addEventListener('click',()=>{source.value='';translate();source.focus()});
+document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(result.textContent);const b=document.getElementById('copy'),old=b.textContent;b.textContent=labels[ui].copied;setTimeout(()=>b.textContent=old,1500)}catch(e){const r=document.createRange();r.selectNodeContents(result);getSelection().removeAllRanges();getSelection().addRange(r)}});
+translate();
+</script>
+</body></html>
